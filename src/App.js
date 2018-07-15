@@ -1,13 +1,21 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
-import Fetcher from './react-fetcher';
+import React, { Component, Fragment } from "react";
+import "./App.css";
+import Fetcher from "./react-fetcher";
 
-function fetchBooks(props) {
-  console.log('fetching books with', props);
+function fetchBooks(options) {
+  console.log("fetching books with", options);
 
-  return fetch('https://jsonplaceholder.typicode.com/posts/1')
-    .then(res => res.json());
+  return fetch(
+    `https://jsonplaceholder.typicode.com/posts/${options.bookId}`
+  ).then(res => {
+    return new Promise(resolve => {
+      res.json().then(val => {
+        res.data = val;
+
+        resolve(res);
+      });
+    });
+  });
 }
 
 class App extends Component {
@@ -15,35 +23,55 @@ class App extends Component {
     return (
       <div className="App">
         <header className="App-header">
-          <Fetcher request={fetchBooks} bookId={1}>
-            {(data) => {
-              console.log('render prop callback', data);
-              return <button onClick={() => data.request({ bookId: 5000 })}>hello</button>;
-            }}
-          </Fetcher>
-          <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Welcome to React</h1>
         </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+        <Fetcher request={fetchBooks} bookId={this.state.num}>
+          {result => {
+            let output;
+
+            console.log("render prop callback", result);
+            if (result.failed) {
+              output = <div>There was an error</div>;
+            } else if (result.fetching) {
+              output = <div>Loading...</div>;
+            } else if (result.data) {
+              output = (
+                <div>
+                  {result.data.id}: {result.data.title}
+                </div>
+              );
+            }
+
+            return (
+              <Fragment>
+                <button onClick={() => result.request({ bookId: 30 })}>
+                  Load book 30
+                </button>
+                {output}
+              </Fragment>
+            );
+          }}
+        </Fetcher>
       </div>
     );
   }
 
   state = {
     num: 0
-  }
+  };
 
   componentDidMount() {
-    setInterval(() => {
+    this._interval = setInterval(() => {
       this.setState(prevState => {
         return {
           num: prevState.num + 1
         };
       });
     }, 5000);
-    
+
+    setTimeout(() => {
+      clearInterval(this._interval);
+    }, 30000);
   }
 }
 
