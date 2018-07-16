@@ -57,7 +57,7 @@ export default class Fetcher extends Component {
     });
   };
 
-  makeRequest(options) {
+  makeRequest = options => {
     const { request } = this.props;
 
     const requestOptions = Object.assign({}, this.props, options);
@@ -109,7 +109,7 @@ export default class Fetcher extends Component {
         }
       );
     }
-  }
+  };
 }
 
 Fetcher.propTypes = {
